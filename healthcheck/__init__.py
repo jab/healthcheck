@@ -1,17 +1,13 @@
-import imp
+import importlib
 import json
 import os
-import six
+import platform
 import socket
 import sys
 import time
 import traceback
-import platform
 from flask import current_app
-try:
-    from functools import reduce
-except Exception:
-    pass
+from functools import reduce
 
 
 def basic_exception_handler(_, e):
@@ -44,7 +40,7 @@ def check_reduce(passed, result):
     return passed and result.get('passed')
 
 
-class HealthCheck(object):
+class HealthCheck:
     def __init__(self, app=None, path=None, success_status=200,
                  success_headers=None, success_handler=json_success_handler,
                  success_ttl=27, failed_status=500, failed_headers=None,
@@ -116,7 +112,7 @@ class HealthCheck(object):
             passed, output = self.exception_handler(checker, e)
 
         if not passed:
-            msg = 'Health check "{}" failed with output "{}"'.format(checker.__name__, output)
+            msg = f'Health check "{checker.__name__}" failed with output "{output}"'
             if self.log_on_failure:
                 current_app.logger.error(msg)
 
@@ -134,7 +130,7 @@ class HealthCheck(object):
         return result
 
 
-class EnvironmentDump(object):
+class EnvironmentDump:
     def __init__(self, app=None, path=None,
                  include_os=True, include_python=True,
                  include_config=True, include_process=True):
@@ -157,12 +153,12 @@ class EnvironmentDump(object):
 
     def add_section(self, name, func):
         if name in self.functions:
-            raise Exception('The name "{}" is already taken.'.format(name))
+            raise Exception(f'The name "{name}" is already taken.')
         self.functions[name] = func
 
     def dump_environment(self):
         data = {}
-        for (name, func) in six.iteritems(self.functions):
+        for (name, func) in self.functions.items():
             data[name] = func()
 
         return json.dumps(data), 200, {'Content-Type': 'application/json'}
@@ -184,9 +180,9 @@ class EnvironmentDump(object):
                                    'micro': sys.version_info.micro,
                                    'releaselevel': sys.version_info.releaselevel,
                                    'serial': sys.version_info.serial}}
-        if imp.find_module('pkg_resources'):
+        if importlib.util.find_spec('pkg_resources'):
             import pkg_resources
-            packages = dict([(p.project_name, p.version) for p in pkg_resources.working_set])
+            packages = {p.project_name: p.version for p in pkg_resources.working_set}
             result['packages'] = packages
 
         return result
