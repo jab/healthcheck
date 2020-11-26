@@ -1,5 +1,8 @@
 # Healthcheck Changelog
 
+### Unreleased
+- Drop support for Python 2. Python 3.6+ is now required.
+
 ### 1.3.1
 - Fix for 'Inappropriate ioctl for device' error on posix systems.
 
